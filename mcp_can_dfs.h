@@ -164,29 +164,29 @@
 /*
  *   Define SPI Instruction Set
  */
-#define MCP_WRITE           0x02
+#define MCP_SPI_INST_WRITE           0x02
 
-#define MCP_READ            0x03
+#define MCP_SPI_INST_READ            0x03
 
-#define MCP_BITMOD          0x05
+#define MCP_SPI_INST_BITMOD          0x05
 
-#define MCP_LOAD_TX0        0x40
-#define MCP_LOAD_TX1        0x42
-#define MCP_LOAD_TX2        0x44
+#define MCP_SPI_INST_LOAD_TX0        0x40
+#define MCP_SPI_INST_LOAD_TX1        0x42
+#define MCP_SPI_INST_LOAD_TX2        0x44
 
-#define MCP_RTS_TX0         0x81
-#define MCP_RTS_TX1         0x82
-#define MCP_RTS_TX2         0x84
-#define MCP_RTS_ALL         0x87
+#define MCP_SPI_INST_RTS_TX0         0x81
+#define MCP_SPI_INST_RTS_TX1         0x82
+#define MCP_SPI_INST_RTS_TX2         0x84
+#define MCP_SPI_INST_RTS_ALL         0x87
 
-#define MCP_READ_RX0        0x90
-#define MCP_READ_RX1        0x94
+#define MCP_SPI_INST_READ_RX0        0x90
+#define MCP_SPI_INST_READ_RX1        0x94
 
-#define MCP_READ_STATUS     0xA0
+#define MCP_SPI_INST_READ_STATUS     0xA0
 
-#define MCP_RX_STATUS       0xB0
+#define MCP_SPI_INST_RX_STATUS       0xB0
 
-#define MCP_RESET           0xC0
+#define MCP_SPI_INST_RESET           0xC0
 
 
 /*

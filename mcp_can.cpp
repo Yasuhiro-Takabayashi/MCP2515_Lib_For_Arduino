@@ -34,7 +34,7 @@ void MCP_CAN::mcp2515_reset(void)
 {
     mcpSPI->beginTransaction(SPISettings(10000000, MSBFIRST, SPI_MODE0));
     MCP2515_SELECT();
-    spi_readwrite(MCP_RESET);
+    spi_readwrite(MCP_SPI_INST_RESET);
     MCP2515_UNSELECT();
     mcpSPI->endTransaction();
     delay(5); // If the MCP2515 was in sleep mode when the reset command was issued then we need to wait a while for it to reset properly
@@ -50,7 +50,7 @@ INT8U MCP_CAN::mcp2515_readRegister(const INT8U address)
 
     mcpSPI->beginTransaction(SPISettings(10000000, MSBFIRST, SPI_MODE0));
     MCP2515_SELECT();
-    spi_readwrite(MCP_READ);
+    spi_readwrite(MCP_SPI_INST_READ);
     spi_readwrite(address);
     ret = spi_read();
     MCP2515_UNSELECT();
@@ -68,7 +68,7 @@ void MCP_CAN::mcp2515_readRegisterS(const INT8U address, INT8U values[], const I
     INT8U i;
     mcpSPI->beginTransaction(SPISettings(10000000, MSBFIRST, SPI_MODE0));
     MCP2515_SELECT();
-    spi_readwrite(MCP_READ);
+    spi_readwrite(MCP_SPI_INST_READ);
     spi_readwrite(address);
     // mcp2515 has auto-increment of address-pointer
     for (i=0; i<n; i++) 
@@ -86,7 +86,7 @@ void MCP_CAN::mcp2515_setRegister(const INT8U address, const INT8U value)
 {
     mcpSPI->beginTransaction(SPISettings(10000000, MSBFIRST, SPI_MODE0));
     MCP2515_SELECT();
-    spi_readwrite(MCP_WRITE);
+    spi_readwrite(MCP_SPI_INST_WRITE);
     spi_readwrite(address);
     spi_readwrite(value);
     MCP2515_UNSELECT();
@@ -102,7 +102,7 @@ void MCP_CAN::mcp2515_setRegisterS(const INT8U address, const INT8U values[], co
     INT8U i;
     mcpSPI->beginTransaction(SPISettings(10000000, MSBFIRST, SPI_MODE0));
     MCP2515_SELECT();
-    spi_readwrite(MCP_WRITE);
+    spi_readwrite(MCP_SPI_INST_WRITE);
     spi_readwrite(address);
        
     for (i=0; i<n; i++) 
@@ -120,7 +120,7 @@ void MCP_CAN::mcp2515_modifyRegister(const INT8U address, const INT8U mask, cons
 {
     mcpSPI->beginTransaction(SPISettings(10000000, MSBFIRST, SPI_MODE0));
     MCP2515_SELECT();
-    spi_readwrite(MCP_BITMOD);
+    spi_readwrite(MCP_SPI_INST_BITMOD);
     spi_readwrite(address);
     spi_readwrite(mask);
     spi_readwrite(data);
@@ -137,7 +137,7 @@ INT8U MCP_CAN::mcp2515_readStatus(void)
     INT8U i;
     mcpSPI->beginTransaction(SPISettings(10000000, MSBFIRST, SPI_MODE0));
     MCP2515_SELECT();
-    spi_readwrite(MCP_READ_STATUS);
+    spi_readwrite(MCP_SPI_INST_READ_STATUS);
     i = spi_read();
     MCP2515_UNSELECT();
     mcpSPI->endTransaction();
