@@ -150,7 +150,7 @@ INT8U MCP_CAN::mcp2515_readStatus(void)
 *********************************************************************************************************/
 void MCP_CAN::setSleepWakeup(const INT8U enable)
 {
-    mcp2515_modifyRegister(MCP_CANINTE, MCP_WAKIF, enable ? MCP_WAKIF : 0);
+    mcp2515_modifyRegister(MCP_ADDR_CANINTEE, MCP_WAKIF, enable ? MCP_WAKIF : 0);
 }
 
 /*********************************************************************************************************
@@ -172,15 +172,15 @@ INT8U MCP_CAN::mcp2515_setCANCTRL_Mode(const INT8U newmode)
 	// If the chip is asleep and we want to change mode then a manual wake needs to be done
 	// This is done by setting the wake up interrupt flag
 	// This undocumented trick was found at https://github.com/mkleemann/can/blob/master/can_sleep_mcp2515.c
-	if((mcp2515_readRegister(MCP_CANSTAT) & MODE_MASK) == MCP_SLEEP && newmode != MCP_SLEEP)
+	if((mcp2515_readRegister(MCP_ADDR_CANSTAT) & MODE_MASK) == MCP_SLEEP && newmode != MCP_SLEEP)
 	{
 		// Make sure wake interrupt is enabled
-		byte wakeIntEnabled = (mcp2515_readRegister(MCP_CANINTE) & MCP_WAKIF);
+		byte wakeIntEnabled = (mcp2515_readRegister(MCP_ADDR_CANINTEE) & MCP_WAKIF);
 		if(!wakeIntEnabled)
-			mcp2515_modifyRegister(MCP_CANINTE, MCP_WAKIF, MCP_WAKIF);
+			mcp2515_modifyRegister(MCP_ADDR_CANINTEE, MCP_WAKIF, MCP_WAKIF);
 
 		// Set wake flag (this does the actual waking up)
-		mcp2515_modifyRegister(MCP_CANINTF, MCP_WAKIF, MCP_WAKIF);
+		mcp2515_modifyRegister(MCP_ADDR_CANINTEF, MCP_WAKIF, MCP_WAKIF);
 
 		// Wait for the chip to exit SLEEP and enter LISTENONLY mode.
 
@@ -193,11 +193,11 @@ INT8U MCP_CAN::mcp2515_setCANCTRL_Mode(const INT8U newmode)
 
 		// Turn wake interrupt back off if it was originally off
 		if(!wakeIntEnabled)
-			mcp2515_modifyRegister(MCP_CANINTE, MCP_WAKIF, 0);
+			mcp2515_modifyRegister(MCP_ADDR_CANINTEE, MCP_WAKIF, 0);
 	}
 
 	// Clear wake flag
-	mcp2515_modifyRegister(MCP_CANINTF, MCP_WAKIF, 0);
+	mcp2515_modifyRegister(MCP_ADDR_CANINTEF, MCP_WAKIF, 0);
 	
 	return mcp2515_requestNewMode(newmode);
 }
@@ -215,9 +215,9 @@ INT8U MCP_CAN::mcp2515_requestNewMode(const INT8U newmode)
 	{
 		// Request new mode
 		// This is inside the loop as sometimes requesting the new mode once doesn't work (usually when attempting to sleep)
-		mcp2515_modifyRegister(MCP_CANCTRL, MODE_MASK, newmode); 
+		mcp2515_modifyRegister(MCP_ADDR_CANCTRL, MODE_MASK, newmode); 
 
-		byte statReg = mcp2515_readRegister(MCP_CANSTAT);
+		byte statReg = mcp2515_readRegister(MCP_ADDR_CANSTAT);
 		if((statReg & MODE_MASK) == newmode) // We're now in the new mode
 			return MCP2515_OK;
 		else if((byte)(millis() - startTime) > 200) // Wait no more than 200ms for the operation to complete
@@ -525,9 +525,9 @@ INT8U MCP_CAN::mcp2515_configRate(const INT8U canSpeed, const INT8U canClock)
     }
 
     if (set) {
-        mcp2515_setRegister(MCP_CNF1, cfg1);
-        mcp2515_setRegister(MCP_CNF2, cfg2);
-        mcp2515_setRegister(MCP_CNF3, cfg3);
+        mcp2515_setRegister(MCP_ADDR_CNF1, cfg1);
+        mcp2515_setRegister(MCP_ADDR_CNF2, cfg2);
+        mcp2515_setRegister(MCP_ADDR_CNF3, cfg3);
         return MCP2515_OK;
     }
      
@@ -547,23 +547,23 @@ void MCP_CAN::mcp2515_initCANBuffers(void)
     INT32U ulMask = 0x00, ulFilt = 0x00;
 
 
-    mcp2515_write_mf(MCP_RXM0SIDH, ext, ulMask);			/*Set both masks to 0           */
-    mcp2515_write_mf(MCP_RXM1SIDH, ext, ulMask);			/*Mask register ignores ext bit */
+    mcp2515_write_mf(MCP_ADDR_RXM00SIDH, ext, ulMask);			/*Set both masks to 0           */
+    mcp2515_write_mf(MCP_ADDR_RXM01SIDH, ext, ulMask);			/*Mask register ignores ext bit */
     
                                                                         /* Set all filters to 0         */
-    mcp2515_write_mf(MCP_RXF0SIDH, ext, ulFilt);			/* RXB0: extended               */
-    mcp2515_write_mf(MCP_RXF1SIDH, std, ulFilt);			/* RXB1: standard               */
-    mcp2515_write_mf(MCP_RXF2SIDH, ext, ulFilt);			/* RXB2: extended               */
-    mcp2515_write_mf(MCP_RXF3SIDH, std, ulFilt);			/* RXB3: standard               */
-    mcp2515_write_mf(MCP_RXF4SIDH, ext, ulFilt);
-    mcp2515_write_mf(MCP_RXF5SIDH, std, ulFilt);
+    mcp2515_write_mf(MCP_ADDR_RXF0SIDH, ext, ulFilt);			/* RXB0: extended               */
+    mcp2515_write_mf(MCP_ADDR_RXF1SIDH, std, ulFilt);			/* RXB1: standard               */
+    mcp2515_write_mf(MCP_ADDR_RXF2SIDH, ext, ulFilt);			/* RXB2: extended               */
+    mcp2515_write_mf(MCP_ADDR_RXF3SIDH, std, ulFilt);			/* RXB3: standard               */
+    mcp2515_write_mf(MCP_ADDR_RXF4SIDH, ext, ulFilt);
+    mcp2515_write_mf(MCP_ADDR_RXF5SIDH, std, ulFilt);
 
                                                                         /* Clear, deactivate the three  */
                                                                         /* transmit buffers             */
                                                                         /* TXBnCTRL -> TXBnD7           */
-    a1 = MCP_TXB0CTRL;
-    a2 = MCP_TXB1CTRL;
-    a3 = MCP_TXB2CTRL;
+    a1 = MCP_ADDR_TXB0CTRL;
+    a2 = MCP_ADDR_TXB1CTRL;
+    a3 = MCP_ADDR_TXB2CTRL;
     for (i = 0; i < 14; i++) {                                          /* in-buffer loop               */
         mcp2515_setRegister(a1, 0);
         mcp2515_setRegister(a2, 0);
@@ -572,8 +572,8 @@ void MCP_CAN::mcp2515_initCANBuffers(void)
         a2++;
         a3++;
     }
-    mcp2515_setRegister(MCP_RXB0CTRL, 0);
-    mcp2515_setRegister(MCP_RXB1CTRL, 0);
+    mcp2515_setRegister(MCP_ADDR_RXB0CTRL, 0);
+    mcp2515_setRegister(MCP_ADDR_RXB1CTRL, 0);
 }
 
 /*********************************************************************************************************
@@ -619,44 +619,44 @@ INT8U MCP_CAN::mcp2515_init(const INT8U canIDMode, const INT8U canSpeed, const I
         mcp2515_initCANBuffers();
 
                                                                         /* interrupt mode               */
-        mcp2515_setRegister(MCP_CANINTE, MCP_RX0IF | MCP_RX1IF);
+        mcp2515_setRegister(MCP_ADDR_CANINTEE, MCP_RX0IF | MCP_RX1IF);
 
 	//Sets BF pins as GPO
 	mcp2515_setRegister(MCP_BFPCTRL,MCP_BxBFS_MASK | MCP_BxBFE_MASK);
 	//Sets RTS pins as GPI
-	mcp2515_setRegister(MCP_TXRTSCTRL,0x00);
+	mcp2515_setRegister(MCP_ADDR_TXRTSCTRL,0x00);
 
         switch(canIDMode)
         {
             case (MCP_ANY):
-            mcp2515_modifyRegister(MCP_RXB0CTRL,
+            mcp2515_modifyRegister(MCP_ADDR_RXB0CTRL,
             MCP_RXB_RX_MASK | MCP_RXB_BUKT_MASK,
             MCP_RXB_RX_ANY | MCP_RXB_BUKT_MASK);
-            mcp2515_modifyRegister(MCP_RXB1CTRL, MCP_RXB_RX_MASK,
+            mcp2515_modifyRegister(MCP_ADDR_RXB1CTRL, MCP_RXB_RX_MASK,
             MCP_RXB_RX_ANY);
             break;
 /*          The followingn two functions of the MCP2515 do not work, there is a bug in the silicon.
             case (MCP_STD): 
-            mcp2515_modifyRegister(MCP_RXB0CTRL,
+            mcp2515_modifyRegister(MCP_ADDR_RXB0CTRL,
             MCP_RXB_RX_MASK | MCP_RXB_BUKT_MASK,
             MCP_RXB_RX_STD | MCP_RXB_BUKT_MASK );
-            mcp2515_modifyRegister(MCP_RXB1CTRL, MCP_RXB_RX_MASK,
+            mcp2515_modifyRegister(MCP_ADDR_RXB1CTRL, MCP_RXB_RX_MASK,
             MCP_RXB_RX_STD);
             break;
 
             case (MCP_EXT): 
-            mcp2515_modifyRegister(MCP_RXB0CTRL,
+            mcp2515_modifyRegister(MCP_ADDR_RXB0CTRL,
             MCP_RXB_RX_MASK | MCP_RXB_BUKT_MASK,
             MCP_RXB_RX_EXT | MCP_RXB_BUKT_MASK );
-            mcp2515_modifyRegister(MCP_RXB1CTRL, MCP_RXB_RX_MASK,
+            mcp2515_modifyRegister(MCP_ADDR_RXB1CTRL, MCP_RXB_RX_MASK,
             MCP_RXB_RX_EXT);
             break;
 */
             case (MCP_STDEXT): 
-            mcp2515_modifyRegister(MCP_RXB0CTRL,
+            mcp2515_modifyRegister(MCP_ADDR_RXB0CTRL,
             MCP_RXB_RX_MASK | MCP_RXB_BUKT_MASK,
             MCP_RXB_RX_STDEXT | MCP_RXB_BUKT_MASK );
-            mcp2515_modifyRegister(MCP_RXB1CTRL, MCP_RXB_RX_MASK,
+            mcp2515_modifyRegister(MCP_ADDR_RXB1CTRL, MCP_RXB_RX_MASK,
             MCP_RXB_RX_STDEXT);
             break;
     
@@ -824,7 +824,7 @@ void MCP_CAN::mcp2515_read_canMsg( const INT8U buffer_sidh_addr)        /* read 
 INT8U MCP_CAN::mcp2515_getNextFreeTXBuf(INT8U *txbuf_n)                 /* get Next free txbuf          */
 {
     INT8U res, i, ctrlval;
-    INT8U ctrlregs[MCP_N_TXBUFFERS] = { MCP_TXB0CTRL, MCP_TXB1CTRL, MCP_TXB2CTRL };
+    INT8U ctrlregs[MCP_N_TXBUFFERS] = { MCP_ADDR_TXB0CTRL, MCP_ADDR_TXB1CTRL, MCP_ADDR_TXB2CTRL };
 
     res = MCP_ALLTXBUSY;
     *txbuf_n = 0x00;
@@ -901,11 +901,11 @@ INT8U MCP_CAN::init_Mask(INT8U num, INT8U ext, INT32U ulData)
      }
     
     if (num == 0){
-        mcp2515_write_mf(MCP_RXM0SIDH, ext, ulData);
+        mcp2515_write_mf(MCP_ADDR_RXM00SIDH, ext, ulData);
 
     }
     else if(num == 1){
-        mcp2515_write_mf(MCP_RXM1SIDH, ext, ulData);
+        mcp2515_write_mf(MCP_ADDR_RXM01SIDH, ext, ulData);
     }
     else res =  MCP2515_FAIL;
     
@@ -946,11 +946,11 @@ INT8U MCP_CAN::init_Mask(INT8U num, INT32U ulData)
         ext = 1;
     
     if (num == 0){
-        mcp2515_write_mf(MCP_RXM0SIDH, ext, ulData);
+        mcp2515_write_mf(MCP_ADDR_RXM00SIDH, ext, ulData);
 
     }
     else if(num == 1){
-        mcp2515_write_mf(MCP_RXM1SIDH, ext, ulData);
+        mcp2515_write_mf(MCP_ADDR_RXM01SIDH, ext, ulData);
     }
     else res =  MCP2515_FAIL;
     
@@ -990,27 +990,27 @@ INT8U MCP_CAN::init_Filt(INT8U num, INT8U ext, INT32U ulData)
     switch( num )
     {
         case 0:
-        mcp2515_write_mf(MCP_RXF0SIDH, ext, ulData);
+        mcp2515_write_mf(MCP_ADDR_RXF0SIDH, ext, ulData);
         break;
 
         case 1:
-        mcp2515_write_mf(MCP_RXF1SIDH, ext, ulData);
+        mcp2515_write_mf(MCP_ADDR_RXF1SIDH, ext, ulData);
         break;
 
         case 2:
-        mcp2515_write_mf(MCP_RXF2SIDH, ext, ulData);
+        mcp2515_write_mf(MCP_ADDR_RXF2SIDH, ext, ulData);
         break;
 
         case 3:
-        mcp2515_write_mf(MCP_RXF3SIDH, ext, ulData);
+        mcp2515_write_mf(MCP_ADDR_RXF3SIDH, ext, ulData);
         break;
 
         case 4:
-        mcp2515_write_mf(MCP_RXF4SIDH, ext, ulData);
+        mcp2515_write_mf(MCP_ADDR_RXF4SIDH, ext, ulData);
         break;
 
         case 5:
-        mcp2515_write_mf(MCP_RXF5SIDH, ext, ulData);
+        mcp2515_write_mf(MCP_ADDR_RXF5SIDH, ext, ulData);
         break;
 
         default:
@@ -1060,27 +1060,27 @@ INT8U MCP_CAN::init_Filt(INT8U num, INT32U ulData)
     switch( num )
     {
         case 0:
-        mcp2515_write_mf(MCP_RXF0SIDH, ext, ulData);
+        mcp2515_write_mf(MCP_ADDR_RXF0SIDH, ext, ulData);
         break;
 
         case 1:
-        mcp2515_write_mf(MCP_RXF1SIDH, ext, ulData);
+        mcp2515_write_mf(MCP_ADDR_RXF1SIDH, ext, ulData);
         break;
 
         case 2:
-        mcp2515_write_mf(MCP_RXF2SIDH, ext, ulData);
+        mcp2515_write_mf(MCP_ADDR_RXF2SIDH, ext, ulData);
         break;
 
         case 3:
-        mcp2515_write_mf(MCP_RXF3SIDH, ext, ulData);
+        mcp2515_write_mf(MCP_ADDR_RXF3SIDH, ext, ulData);
         break;
 
         case 4:
-        mcp2515_write_mf(MCP_RXF4SIDH, ext, ulData);
+        mcp2515_write_mf(MCP_ADDR_RXF4SIDH, ext, ulData);
         break;
 
         case 5:
-        mcp2515_write_mf(MCP_RXF5SIDH, ext, ulData);
+        mcp2515_write_mf(MCP_ADDR_RXF5SIDH, ext, ulData);
         break;
 
         default:
@@ -1226,13 +1226,13 @@ INT8U MCP_CAN::readMsg()
     if ( stat & MCP_STAT_RX0IF )                                        /* Msg in Buffer 0              */
     {
         mcp2515_read_canMsg( MCP_RXBUF_0);
-        mcp2515_modifyRegister(MCP_CANINTF, MCP_RX0IF, 0);
+        mcp2515_modifyRegister(MCP_ADDR_CANINTEF, MCP_RX0IF, 0);
         res = CAN_OK;
     }
     else if ( stat & MCP_STAT_RX1IF )                                   /* Msg in Buffer 1              */
     {
         mcp2515_read_canMsg( MCP_RXBUF_1);
-        mcp2515_modifyRegister(MCP_CANINTF, MCP_RX1IF, 0);
+        mcp2515_modifyRegister(MCP_ADDR_CANINTEF, MCP_RX1IF, 0);
         res = CAN_OK;
     }
     else 
@@ -1330,7 +1330,7 @@ INT8U MCP_CAN::getError(void)
 *********************************************************************************************************/
 INT8U MCP_CAN::errorCountRX(void)                             
 {
-    return mcp2515_readRegister(MCP_REC);
+    return mcp2515_readRegister(MCP_ADDR_REC);
 }
 
 /*********************************************************************************************************
@@ -1339,7 +1339,7 @@ INT8U MCP_CAN::errorCountRX(void)
 *********************************************************************************************************/
 INT8U MCP_CAN::errorCountTX(void)                             
 {
-    return mcp2515_readRegister(MCP_TEC);
+    return mcp2515_readRegister(MCP_ADDR_TEC);
 }
 
 /*********************************************************************************************************
@@ -1348,8 +1348,8 @@ INT8U MCP_CAN::errorCountTX(void)
 *********************************************************************************************************/
 INT8U MCP_CAN::enOneShotTX(void)                             
 {
-    mcp2515_modifyRegister(MCP_CANCTRL, MODE_ONESHOT, MODE_ONESHOT);
-    if((mcp2515_readRegister(MCP_CANCTRL) & MODE_ONESHOT) != MODE_ONESHOT)
+    mcp2515_modifyRegister(MCP_ADDR_CANCTRL, MODE_ONESHOT, MODE_ONESHOT);
+    if((mcp2515_readRegister(MCP_ADDR_CANCTRL) & MODE_ONESHOT) != MODE_ONESHOT)
 	    return CAN_FAIL;
     else
 	    return CAN_OK;
@@ -1361,8 +1361,8 @@ INT8U MCP_CAN::enOneShotTX(void)
 *********************************************************************************************************/
 INT8U MCP_CAN::disOneShotTX(void)                             
 {
-    mcp2515_modifyRegister(MCP_CANCTRL, MODE_ONESHOT, 0);
-    if((mcp2515_readRegister(MCP_CANCTRL) & MODE_ONESHOT) != 0)
+    mcp2515_modifyRegister(MCP_ADDR_CANCTRL, MODE_ONESHOT, 0);
+    if((mcp2515_readRegister(MCP_ADDR_CANCTRL) & MODE_ONESHOT) != 0)
         return CAN_FAIL;
     else
         return CAN_OK;
@@ -1374,10 +1374,10 @@ INT8U MCP_CAN::disOneShotTX(void)
 *********************************************************************************************************/
 INT8U MCP_CAN::abortTX(void)                             
 {
-    mcp2515_modifyRegister(MCP_CANCTRL, ABORT_TX, ABORT_TX);
+    mcp2515_modifyRegister(MCP_ADDR_CANCTRL, ABORT_TX, ABORT_TX);
 	
     // Maybe check to see if the TX buffer transmission request bits are cleared instead?
-    if((mcp2515_readRegister(MCP_CANCTRL) & ABORT_TX) != ABORT_TX)
+    if((mcp2515_readRegister(MCP_ADDR_CANCTRL) & ABORT_TX) != ABORT_TX)
 	    return CAN_FAIL;
     else
 	    return CAN_OK;
@@ -1401,7 +1401,7 @@ INT8U MCP_CAN::setGPO(INT8U data)
 INT8U MCP_CAN::getGPI(void)
 {
     INT8U res;
-    res = mcp2515_readRegister(MCP_TXRTSCTRL) & MCP_BxRTS_MASK;
+    res = mcp2515_readRegister(MCP_ADDR_TXRTSCTRL) & MCP_BxRTS_MASK;
     return (res >> 3);
 }
 
