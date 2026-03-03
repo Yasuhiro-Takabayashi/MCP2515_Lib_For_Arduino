@@ -622,7 +622,7 @@ INT8U MCP_CAN::mcp2515_init(const INT8U canIDMode, const INT8U canSpeed, const I
         mcp2515_setRegister(MCP_ADDR_CANINTEE, MCP_RX0IF | MCP_RX1IF);
 
 	//Sets BF pins as GPO
-	mcp2515_setRegister(MCP_BFPCTRL,MCP_BxBFS_MASK | MCP_BxBFE_MASK);
+	mcp2515_setRegister(MCP_ADDR_BFPCTRL,MCP_BxBFS_MASK | MCP_BxBFE_MASK);
 	//Sets RTS pins as GPI
 	mcp2515_setRegister(MCP_ADDR_TXRTSCTRL,0x00);
 
@@ -1307,7 +1307,7 @@ INT8U MCP_CAN::checkReceive(void)
 *********************************************************************************************************/
 INT8U MCP_CAN::checkError(void)
 {
-    INT8U eflg = mcp2515_readRegister(MCP_EFLG);
+    INT8U eflg = mcp2515_readRegister(MCP_ADDR_EFLG);
 
     if ( eflg & MCP_EFLG_ERRORMASK ) 
         return CAN_CTRLERROR;
@@ -1321,7 +1321,7 @@ INT8U MCP_CAN::checkError(void)
 *********************************************************************************************************/
 INT8U MCP_CAN::getError(void)
 {
-    return mcp2515_readRegister(MCP_EFLG);
+    return mcp2515_readRegister(MCP_ADDR_EFLG);
 }
 
 /*********************************************************************************************************
@@ -1389,7 +1389,7 @@ INT8U MCP_CAN::abortTX(void)
 *********************************************************************************************************/
 INT8U MCP_CAN::setGPO(INT8U data)
 {
-    mcp2515_modifyRegister(MCP_BFPCTRL, MCP_BxBFS_MASK, (data<<4));
+    mcp2515_modifyRegister(MCP_ADDR_BFPCTRL, MCP_BxBFS_MASK, (data<<4));
 	    
     return 0;
 }
